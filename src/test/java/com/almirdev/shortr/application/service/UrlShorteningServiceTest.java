@@ -15,7 +15,7 @@ import org.springframework.data.redis.core.ValueOperations;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,15 +67,29 @@ class UrlShorteningServiceTest {
     }
 
     @Test
-    void shouldGenerateNewCodeAndSaveWhenNotPresentAnywhere() {
+    void shouldGenerateNewCodeUsingSavedIdWhenNotPresentAnywhere() {
+        long generatedId = 7L;
+
         when(valueOperations.get("long:" + longUrl)).thenReturn(null);
         when(repository.findByLongUrl(longUrl)).thenReturn(Optional.empty());
-        when(shortCodeGenerator.generate(longUrl)).thenReturn(shortCode);
+
+        // Simulate saveAndFlush assigning an ID to the entity
+        doAnswer(invocation -> {
+            Url entity = invocation.getArgument(0);
+            entity.setId(generatedId);
+            return entity;
+        }).when(repository).saveAndFlush(any(Url.class));
+
+        when(shortCodeGenerator.generate(generatedId)).thenReturn(shortCode);
 
         String result = service.shorten(longUrl);
 
         assertEquals(shortCode, result);
+        // Phase 1: saveAndFlush to get ID
+        verify(repository).saveAndFlush(any(Url.class));
+        // Phase 2: save with the generated shortCode
         verify(repository).save(any(Url.class));
+        // Cache populated
         verify(valueOperations).set(eq("long:" + longUrl), eq(shortCode), any());
     }
 }

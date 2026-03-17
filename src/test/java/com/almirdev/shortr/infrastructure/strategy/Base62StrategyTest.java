@@ -8,21 +8,26 @@ class Base62StrategyTest {
     private final Base62Strategy strategy = new Base62Strategy();
 
     @Test
-    void shouldGenerateConsistentCodeForSameInput() {
-        String input = "https://google.com";
-        String code1 = strategy.generate(input);
-        String code2 = strategy.generate(input);
-        
+    void shouldGenerateConsistentCodeForSameId() {
+        String code1 = strategy.generate(42L);
+        String code2 = strategy.generate(42L);
+
         assertEquals(code1, code2);
         assertNotNull(code1);
         assertFalse(code1.isEmpty());
     }
 
     @Test
-    void shouldGenerateCodeWithReasonableLength() {
-        String code = strategy.generate("https://google.com");
-        // Base62 from 8 bytes of hash should be around 11-12 chars max
-        assertTrue(code.length() > 5);
+    void shouldGenerateDifferentCodesForDifferentIds() {
+        String code1 = strategy.generate(1L);
+        String code2 = strategy.generate(2L);
 
+        assertNotEquals(code1, code2);
+    }
+
+    @Test
+    void shouldHandleEdgeCases() {
+        assertDoesNotThrow(() -> strategy.generate(0L));
+        assertDoesNotThrow(() -> strategy.generate(Long.MAX_VALUE));
     }
 }

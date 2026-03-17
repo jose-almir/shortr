@@ -21,13 +21,13 @@ class ShortCodeGeneratorTest {
 
     @Test
     void shouldDelegateToStrategy() {
-        String input = "https://google.com";
+        long id = 42L;
         String expectedCode = "abc12345";
-        
-        when(strategy.generate(input)).thenReturn(expectedCode);
-        
-        String result = generator.generate(input);
-        
+
+        when(strategy.generate(id)).thenReturn(expectedCode);
+
+        String result = generator.generate(id);
+
         assertEquals(expectedCode, result);
     }
 }

@@ -113,24 +113,23 @@ sequenceDiagram
 
 ## Short Code Generation
 
-The strategy is selected at startup via the `shortr.strategy` property using `@ConditionalOnProperty`:
+The short code is derived from the **database-assigned entity ID** encoded in Base62. Since the ID is a unique, monotonically increasing sequence, the resulting codes are **collision-free by definition**.
 
 ```mermaid
 graph LR
     GEN["ShortCodeGenerator"] --> IFACE["«interface» ShortCodeStrategy"]
     IFACE --> B62["Base62Strategy"]
-    IFACE --> RND["RandomStrategy"]
 
     style IFACE fill:#1a1a1a,stroke:#22d3ee,color:#e5e5e5
     style B62 fill:#1a1a1a,stroke:#f97316,color:#e5e5e5
-    style RND fill:#1a1a1a,stroke:#f97316,color:#e5e5e5
     style GEN fill:#1a1a1a,stroke:#a78bfa,color:#e5e5e5
 ```
 
-| Strategy   | Config value         | How it works                                    |
-|------------|----------------------|-------------------------------------------------|
-| **Base62** | `shortr.strategy=base62` (default) | MD5 hash → first 8 bytes → Base62 encoding |
-| **Random** | `shortr.strategy=random`           | 8 random chars from `[0-9a-zA-Z]`          |
+| ID | Base62 Code |
+|----|-------------|
+| 1  | `1`         |
+| 62 | `10`        |
+| 1M | `4c92`      |
 
 ## Caching Strategy
 

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 
@@ -24,6 +25,7 @@ public class UrlShorteningServiceImpl implements UrlShorteningService {
     private static final Duration CREATE_CACHE_TTL = Duration.ofHours(24);
 
     @Override
+    @Transactional
     public String shorten(String longUrl) {
         // 1. Check Cache (longUrl -> shortCode)
         String cachedShortCode = redisTemplate.opsForValue().get(CREATE_CACHE_PREFIX + longUrl);
@@ -39,20 +41,30 @@ public class UrlShorteningServiceImpl implements UrlShorteningService {
                     cacheShortCode(longUrl, url.getShortCode());
                     return url.getShortCode();
                 })
-                .orElseGet(() -> {
-                    // 3. Not in DB - Generate and Insert
-                    log.info("Generating new short code for longUrl: {}", longUrl);
-                    String shortCode = shortCodeGenerator.generate(longUrl);
-                    
-                    Url url = Url.builder()
-                            .longUrl(longUrl)
-                            .shortCode(shortCode)
-                            .build();
-                    
-                    repository.save(url);
-                    cacheShortCode(longUrl, shortCode);
-                    return shortCode;
-                });
+                .orElseGet(() -> createAndPersist(longUrl));
+    }
+
+    /**
+     * Two-phase save: insert the entity first to obtain the database-
+     * generated ID, then derive the short code from that ID and update.
+     * This guarantees collision-free codes since the ID sequence is unique.
+     */
+    private String createAndPersist(String longUrl) {
+        log.info("Generating new short code for longUrl: {}", longUrl);
+
+        // Phase 1 — persist to obtain the auto-generated ID
+        Url url = Url.builder()
+                .longUrl(longUrl)
+                .build();
+        repository.saveAndFlush(url);
+
+        // Phase 2 — derive short code from the unique ID
+        String shortCode = shortCodeGenerator.generate(url.getId());
+        url.setShortCode(shortCode);
+        repository.save(url);
+
+        cacheShortCode(longUrl, shortCode);
+        return shortCode;
     }
 
     private void cacheShortCode(String longUrl, String shortCode) {

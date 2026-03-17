@@ -2,9 +2,12 @@ package com.almirdev.shortr.domain.strategy;
 
 public interface ShortCodeStrategy {
     /**
-     * Generates a short code based on the input string.
-     * @param input The original data to base the hash or generation on.
-     * @return A unique short code string.
+     * Generates a short code from a database-assigned unique ID.
+     * Using the ID guarantees collision-free codes since the
+     * underlying sequence is monotonically increasing.
+     *
+     * @param id The persisted entity ID.
+     * @return A short code string derived from the ID.
      */
-    String generate(String input);
+    String generate(long id);
 }
