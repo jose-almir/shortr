@@ -79,4 +79,18 @@ class UrlControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Not found"));
     }
+
+    @Test
+    void shouldReturn500WhenUnexpectedExceptionOccurs() throws Exception {
+        String longUrl = "https://google.com";
+        ShortenRequest request = new ShortenRequest(longUrl);
+
+        when(shorteningService.shorten(longUrl)).thenThrow(new RuntimeException("Something broke"));
+
+        mockMvc.perform(post("/shorten")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("An internal server error occurred"));
+    }
 }
