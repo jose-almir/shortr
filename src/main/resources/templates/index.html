@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shortr | Premium URL Shortener</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <main class="container">
+        <header class="glass-card header-section">
+            <h1 class="title">Short<span>r</span></h1>
+            <p class="subtitle">Elevate your links with lightning-fast shortening</p>
+        </header>
+
+        <section class="glass-card main-section">
+            <div class="input-group">
+                <input type="text" id="longUrl" placeholder="https://example.com/very-long-url-here" autocomplete="off">
+                <button id="shortenBtn" class="btn-primary">Shorten Now</button>
+            </div>
+            <div id="errorMsg" class="error-msg"></div>
+        </section>
+
+        <section id="resultSection" class="glass-card result-section hidden">
+            <div class="result-content">
+                <div class="result-label">Your shorten link:</div>
+                <div class="result-box">
+                    <span id="shortUrl" class="short-url-text"></span>
+                    <button id="copyBtn" class="btn-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>
