@@ -34,7 +34,7 @@ com.almirdev.shortr
 │   ├── service/         # UrlShorteningServiceImpl, UrlRedirectServiceImpl
 │   └── dto/             # ShortenRequest, ShortenResponse
 ├── infrastructure/      # Framework adapters
-│   └── strategy/        # Base62Strategy, RandomStrategy, ShortCodeGenerator
+│   └── strategy/        # Base62Strategy, ShortCodeGenerator
 └── web/                 # HTTP layer
     ├── controller/      # UrlController, IndexController
     └── exception/       # GlobalExceptionHandler
@@ -80,8 +80,10 @@ sequenceDiagram
         alt Found in DB
             DB-->>SVC: Url entity
         else Not Found
-            SVC->>SVC: shortCodeGenerator.generate(longUrl)
-            SVC->>DB: save(Url)
+            SVC->>DB: saveAndFlush(Url)
+            DB-->>SVC: entity with ID
+            SVC->>SVC: Base62(ID + offset)
+            SVC->>DB: update shortCode
         end
         SVC->>CACHE: SET long:{longUrl} → shortCode (TTL 24h)
     end
@@ -127,11 +129,12 @@ graph LR
     style GEN fill:#1a1a1a,stroke:#a78bfa,color:#e5e5e5
 ```
 
-| ID | Base62 Code |
-|----|-------------|
-| 1  | `1`         |
-| 62 | `10`        |
-| 1M | `4c92`      |
+A 1-billion offset is added so even the first IDs produce 6+ character codes:
+
+| ID | Encoded value         | Short code |
+|----|-----------------------|------------|
+| 1  | 1,000,000,001         | `15FTGh`   |
+| 100| 1,000,000,100         | `15FTIe`   |
 
 ## Caching Strategy
 
@@ -153,20 +156,27 @@ graph LR
 
 ### Prerequisites
 
-- Java 25+
 - Docker & Docker Compose
 
-### Run
+### Deploy (Docker)
 
 ```bash
-# Start PostgreSQL and Redis
-docker compose up -d
-
-# Start the application
-./mvnw spring-boot:run
+docker compose up --build
 ```
 
-Open [http://localhost:8080](http://localhost:8080).
+This builds the app image and starts **Shortr + PostgreSQL + Redis** together. Open [http://localhost:8080](http://localhost:8080).
+
+### Development
+
+Requires Java 25+ installed locally:
+
+```bash
+# Start only Postgres + Redis
+docker compose up postgres redis -d
+
+# Run the app with hot-reload
+./mvnw spring-boot:run
+```
 
 ### Test
 
