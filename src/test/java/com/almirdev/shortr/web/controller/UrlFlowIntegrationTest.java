@@ -31,7 +31,7 @@ class UrlFlowIntegrationTest {
         String longUrl = "https://www.google.com";
         ShortenRequest request = new ShortenRequest(longUrl);
 
-        ResponseEntity<ShortenResponse> shortenResponse = restTestClient.post()
+        ShortenResponse shortenResponse = restTestClient.post()
                 .uri("http://localhost:%d/shorten".formatted(port))
                 .body(request)
                 .exchange()
@@ -40,8 +40,8 @@ class UrlFlowIntegrationTest {
                 .returnResult()
                 .getResponseBody();
 
-        assertThat(responseBody).isNotNull();
-        String shortCode = responseBody.getShortCode();
+        assertThat(shortenResponse).isNotNull();
+        String shortCode = shortenResponse.getShortCode();
         assertThat(shortCode).isNotBlank();
 
         // Step 2: Redirect
