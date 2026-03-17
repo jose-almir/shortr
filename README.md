@@ -1,4 +1,6 @@
-# Shortr
+<p align="center">
+  <img src="src/main/resources/static/img/logo.svg" alt="Shortr" width="280">
+</p>
 
 A fast, no-nonsense URL shortener built with **Spring Boot 4**, **Java 25**, **PostgreSQL**, and **Redis**.
 

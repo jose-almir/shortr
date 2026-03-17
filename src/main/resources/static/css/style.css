@@ -87,16 +87,8 @@ body {
 }
 
 .logo {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: clamp(3rem, 8vw, 4.5rem);
-    letter-spacing: -3px;
-    line-height: 1;
-    color: var(--text);
-}
-
-.logo-accent {
-    color: var(--accent);
+    display: block;
+    height: auto;
 }
 
 .tagline {
