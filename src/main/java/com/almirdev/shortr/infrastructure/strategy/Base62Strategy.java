@@ -15,9 +15,16 @@ public class Base62Strategy implements ShortCodeStrategy {
 
     private static final String BASE62 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+    /**
+     * Offset added to every ID so even the first entries produce
+     * 6-character codes instead of trivially short ones like "1".
+     * 62^5 = 916,132,832 → any value above this yields ≥ 6 chars.
+     */
+    private static final long START_OFFSET = 1_000_000_000L;
+
     @Override
     public String generate(long id) {
-        return encode(id);
+        return encode(START_OFFSET + id);
     }
 
     private String encode(long value) {
