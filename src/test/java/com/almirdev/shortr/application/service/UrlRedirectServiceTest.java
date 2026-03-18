@@ -1,5 +1,6 @@
 package com.almirdev.shortr.application.service;
 
+import com.almirdev.shortr.application.port.UrlCacheService;
 import com.almirdev.shortr.domain.exception.UrlNotFoundException;
 import com.almirdev.shortr.domain.model.Url;
 import com.almirdev.shortr.domain.repository.UrlRepository;
@@ -27,10 +28,7 @@ class UrlRedirectServiceTest {
     private UrlRepository repository;
 
     @Mock
-    private StringRedisTemplate redisTemplate;
-
-    @Mock
-    private ValueOperations<String, String> valueOperations;
+    private UrlCacheService cacheService;
 
     @InjectMocks
     private UrlRedirectServiceImpl service;
@@ -40,12 +38,12 @@ class UrlRedirectServiceTest {
 
     @BeforeEach
     void setUp() {
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(cacheService.get(anyString())).thenReturn(Optional.empty());
     }
 
     @Test
     void shouldReturnUrlFromCacheWhenPresent() {
-        when(valueOperations.get("short:" + shortCode)).thenReturn(longUrl);
+        when(cacheService.get(anyString())).thenReturn(Optional.of(longUrl));
 
         String result = service.redirect(shortCode);
 
@@ -55,19 +53,17 @@ class UrlRedirectServiceTest {
 
     @Test
     void shouldReturnUrlFromDbAndRefillCacheWhenMissingInCache() {
-        when(valueOperations.get("short:" + shortCode)).thenReturn(null);
         Url url = Url.builder().shortCode(shortCode).longUrl(longUrl).build();
         when(repository.findByShortCode(shortCode)).thenReturn(Optional.of(url));
 
         String result = service.redirect(shortCode);
 
         assertEquals(longUrl, result);
-        verify(valueOperations).set(eq("short:" + shortCode), eq(longUrl), any());
+        verify(cacheService).set(eq("short:" + shortCode), eq(longUrl), any());
     }
 
     @Test
     void shouldThrowExceptionWhenNotFoundInDb() {
-        when(valueOperations.get("short:" + shortCode)).thenReturn(null);
         when(repository.findByShortCode(shortCode)).thenReturn(Optional.empty());
 
         assertThrows(UrlNotFoundException.class, () -> service.redirect(shortCode));

@@ -1,5 +1,6 @@
 package com.almirdev.shortr.application.service;
 
+import com.almirdev.shortr.application.port.UrlCacheService;
 import com.almirdev.shortr.domain.model.Url;
 import com.almirdev.shortr.domain.repository.UrlRepository;
 import com.almirdev.shortr.infrastructure.strategy.ShortCodeGenerator;
@@ -9,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.util.Optional;
@@ -25,13 +25,10 @@ class UrlShorteningServiceTest {
     private UrlRepository repository;
 
     @Mock
-    private StringRedisTemplate redisTemplate;
-
-    @Mock
-    private ValueOperations<String, String> valueOperations;
-
-    @Mock
     private ShortCodeGenerator shortCodeGenerator;
+
+    @Mock
+    private UrlCacheService cacheService;
 
     @InjectMocks
     private UrlShorteningServiceImpl service;
@@ -41,12 +38,12 @@ class UrlShorteningServiceTest {
 
     @BeforeEach
     void setUp() {
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(cacheService.get(anyString())).thenReturn(Optional.empty());
     }
 
     @Test
     void shouldReturnCodeFromCacheWhenPresent() {
-        when(valueOperations.get("long:" + longUrl)).thenReturn(shortCode);
+        when(cacheService.get(anyString())).thenReturn(Optional.of(shortCode));
 
         String result = service.shorten(longUrl);
 
@@ -56,21 +53,19 @@ class UrlShorteningServiceTest {
 
     @Test
     void shouldReturnCodeFromDbAndUpdateCacheWhenPresentInDb() {
-        when(valueOperations.get("long:" + longUrl)).thenReturn(null);
         Url url = Url.builder().longUrl(longUrl).shortCode(shortCode).build();
         when(repository.findByLongUrl(longUrl)).thenReturn(Optional.of(url));
 
         String result = service.shorten(longUrl);
 
         assertEquals(shortCode, result);
-        verify(valueOperations).set(eq("long:" + longUrl), eq(shortCode), any());
+        verify(cacheService).set(eq("long:" + longUrl), eq(shortCode), any());
     }
 
     @Test
     void shouldGenerateNewCodeUsingSavedIdWhenNotPresentAnywhere() {
         long generatedId = 7L;
 
-        when(valueOperations.get("long:" + longUrl)).thenReturn(null);
         when(repository.findByLongUrl(longUrl)).thenReturn(Optional.empty());
 
         // Simulate saveAndFlush assigning an ID to the entity
@@ -90,6 +85,6 @@ class UrlShorteningServiceTest {
         // Phase 2: save with the generated shortCode
         verify(repository).save(any(Url.class));
         // Cache populated
-        verify(valueOperations).set(eq("long:" + longUrl), eq(shortCode), any());
+        verify(cacheService).set(eq("long:" + longUrl), eq(shortCode), any());
     }
 }
