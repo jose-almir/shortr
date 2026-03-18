@@ -2,7 +2,7 @@
   <img src="src/main/resources/static/img/logo.svg" alt="Shortr" width="280">
 </p>
 
-A fast, no-nonsense URL shortener built with **Spring Boot 4**, **Java 25**, **PostgreSQL**, and **Redis**.
+A fast, minimalist URL shortener built with **Spring Boot 4**, **Java 25**, **PostgreSQL**, and **Redis**.
 
 ## Tech Stack
 
@@ -20,7 +20,7 @@ A fast, no-nonsense URL shortener built with **Spring Boot 4**, **Java 25**, **P
 
 ## Architecture
 
-The project follows a **layered DDD** structure with clear separation of concerns:
+The project follows a **layered DDD** structure with decoupled components:
 
 ```
 com.almirdev.shortr
@@ -117,7 +117,7 @@ sequenceDiagram
 
 ## Short Code Generation
 
-The short code is derived from the **database-assigned entity ID** encoded in Base62. Since the ID is a unique, monotonically increasing sequence, the resulting codes are **collision-free by definition**.
+The short code is derived from the **database-assigned entity ID** encoded in Base62. Since the ID is a unique sequence, the resulting codes are guaranteed to be collision-free.
 
 ```mermaid
 graph LR
@@ -164,7 +164,7 @@ A 1-billion offset is added so even the first IDs produce 6+ character codes:
 docker compose up --build
 ```
 
-This builds the app image and starts **Shortr + PostgreSQL + Redis** together. Open [http://localhost:8080](http://localhost:8080).
+This builds the app image and starts **Shortr + PostgreSQL + Redis**. Open [http://localhost:8080](http://localhost:8080).
 
 ### Development
 
