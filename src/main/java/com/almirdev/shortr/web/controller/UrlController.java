@@ -25,7 +25,7 @@ public class UrlController {
         return ResponseEntity.status(HttpStatus.CREATED).body(new ShortenResponse(shortCode));
     }
 
-    @GetMapping("/{shortCode}")
+    @GetMapping("/{shortCode:[A-Za-z0-9]+}")
     public ResponseEntity<Void> redirect(@PathVariable String shortCode) {
         String longUrl = redirectService.redirect(shortCode);
         return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY)
